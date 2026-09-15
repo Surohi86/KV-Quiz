@@ -11,6 +11,21 @@
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
 
+<!-- HTML2PDF library for high-resolution Certificate PDF download -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+  <!-- MathJax for Math, Trigonometry, Scientific Symbols & Formula Rendering -->
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [['$$', '$$'], ['\\[', '\\]']]
+      },
+      svg: { fontCache: 'global' }
+    };
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js" id="MathJax-script" async></script>
+
   <!-- AD UNIT: Site Script -->
   <script src="https://directoryeditorweep.com/9e/2d/7c/9e2d7c023b2544a5170acfbce7bb8b83.js"></script>
 
@@ -1254,6 +1269,376 @@
       border: none;
       cursor: pointer;
     }
+    
+    /* ================= HTML NOTE FULLSCREEN VIEWER MODAL ================= */
+    .note-modal-overlay {
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.75);
+      z-index: 2800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 12px;
+      animation: fadeIn 0.25s ease;
+    }
+
+    .note-modal-container {
+      background: var(--card);
+      border-radius: var(--radius);
+      width: 100%;
+      max-width: 820px;
+      height: 90vh;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 16px 40px rgba(0,0,0,0.3);
+      border: 1px solid var(--border);
+      overflow: hidden;
+    }
+
+    .note-modal-header {
+      padding: 14px 20px;
+      background: var(--primary-light);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .note-modal-body {
+      flex: 1;
+      padding: 24px 20px;
+      overflow-y: auto;
+      line-height: 1.7;
+      color: var(--text);
+      font-size: 15px;
+    }
+
+    /* Rendering styles for Admin's custom HTML */
+    .note-modal-body table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 16px 0;
+      background: var(--card);
+      overflow-x: auto;
+      display: block;
+    }
+
+    .note-modal-body th, .note-modal-body td {
+      border: 1px solid var(--border);
+      padding: 10px 14px;
+      text-align: left;
+    }
+
+    .note-modal-body th {
+      background: var(--primary-light);
+      color: var(--primary);
+      font-weight: 700;
+    }
+
+    .note-modal-body img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 8px;
+      margin: 10px auto;
+      display: block;
+    }
+
+    .note-modal-body svg {
+      max-width: 100%;
+      height: auto;
+      display: inline-block;
+    }
+    
+    /* Enhanced Close Button with Easy Touch Target */
+    .btn-close-note {
+      background: rgba(255, 255, 255, 0.15);
+      border: 1px solid var(--border);
+      color: var(--text);
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      font-size: 18px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      line-height: 1;
+      transition: var(--transition);
+      flex-shrink: 0;
+      touch-action: manipulation;
+    }
+
+    .btn-close-note:hover, .btn-close-note:active {
+      background: rgba(239, 68, 68, 0.2);
+      color: #ef4444;
+      border-color: #ef4444;
+    }
+
+    /* Print media query if printed from PC/desktop */
+    @media print {
+      body * {
+        visibility: hidden !important;
+      }
+      #noteReaderModalOverlay, 
+      #noteReaderModalOverlay * {
+        visibility: visible !important;
+      }
+      #noteReaderModalOverlay {
+        position: absolute !important;
+        left: 0 !important;
+        top: 0 !important;
+        width: 100% !important;
+        height: auto !important;
+        background: #ffffff !important;
+        padding: 0 !important;
+        display: block !important;
+      }
+      .note-modal-container {
+        box-shadow: none !important;
+        border: none !important;
+        max-width: 100% !important;
+        height: auto !important;
+      }
+      .note-modal-header button {
+        display: none !important;
+      }
+    }
+    
+    /* ================= CERTIFICATE & MILESTONES STYLING ================= */
+    .cert-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+      margin-top: 16px;
+    }
+
+    .cert-tier-card {
+      background: var(--card);
+      border: 2px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px;
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      position: relative;
+      overflow: hidden;
+      transition: var(--transition);
+    }
+
+    .cert-tier-card.unlocked {
+      border-color: #d4af37;
+      background: linear-gradient(180deg, var(--card) 0%, rgba(212, 175, 55, 0.05) 100%);
+    }
+
+    .cert-tier-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .cert-tier-badge {
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .tier-bronze { background: #fbeee6; color: #b85d19; border: 1px solid #e0a374; }
+    .tier-silver { background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; }
+    .tier-gold { background: #fef9c3; color: #a16207; border: 1px solid #facc15; }
+
+    /* MILESTONE POPUP MODAL */
+    .cert-popup-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.7);
+      z-index: 3000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .cert-popup-card {
+      background: var(--card);
+      border-radius: 20px;
+      padding: 28px 24px;
+      max-width: 440px;
+      width: 100%;
+      text-align: center;
+      box-shadow: 0 16px 36px rgba(0,0,0,0.3);
+      border: 2px solid #d4af37;
+      position: relative;
+      animation: popIn 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    @keyframes popIn {
+      from { transform: scale(0.85); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
+    /* HIDDEN PRINTABLE CERTIFICATE CONTAINER (A4 LANDSCAPE RATIO) */
+    #certificatePrintWrapper {
+      position: absolute;
+      left: -9999px;
+      top: -9999px;
+      width: 1050px;
+      height: 742px;
+      background: #ffffff;
+      padding: 20px;
+      box-sizing: border-box;
+    }
+
+    .cert-frame {
+      width: 100%;
+      height: 100%;
+      border: 8px solid #1a56a0;
+      padding: 8px;
+      position: relative;
+      background: #fdfbf7;
+      box-sizing: border-box;
+    }
+
+    .cert-inner-frame {
+      width: 100%;
+      height: 100%;
+      border: 3px double #d4af37;
+      padding: 30px 40px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      position: relative;
+      box-sizing: border-box;
+      background: radial-gradient(circle at center, #ffffff 60%, #faf6ec 100%);
+    }
+
+    .cert-corner {
+      position: absolute;
+      width: 44px;
+      height: 44px;
+      border-color: #d4af37;
+      border-style: solid;
+    }
+    .cert-corner.top-left { top: 6px; left: 6px; border-width: 4px 0 0 4px; }
+    .cert-corner.top-right { top: 6px; right: 6px; border-width: 4px 4px 0 0; }
+    .cert-corner.bottom-left { bottom: 6px; left: 6px; border-width: 0 0 4px 4px; }
+    .cert-corner.bottom-right { bottom: 6px; right: 6px; border-width: 0 4px 4px 0; }
+
+    .cert-logo {
+      width: 70px;
+      height: 70px;
+      margin-bottom: 8px;
+    }
+    .cert-logo img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    .cert-school-title {
+      font-size: 26px;
+      font-weight: 800;
+      color: #1a56a0;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-bottom: 2px;
+      font-family: 'Times New Roman', serif;
+    }
+
+    .cert-school-sub {
+      font-size: 13px;
+      color: #555;
+      font-weight: 600;
+      letter-spacing: 1px;
+      margin-bottom: 12px;
+    }
+
+    .cert-title-banner {
+      font-size: 24px;
+      font-weight: 700;
+      color: #b45309;
+      text-transform: uppercase;
+      letter-spacing: 3px;
+      margin: 8px 0;
+      border-bottom: 2px solid #d4af37;
+      padding-bottom: 4px;
+      display: inline-block;
+      font-family: 'Times New Roman', serif;
+    }
+
+    .cert-presentation-text {
+      font-size: 15px;
+      font-style: italic;
+      color: #555;
+      margin-top: 8px;
+    }
+
+    .cert-student-name {
+      font-size: 34px;
+      font-weight: 800;
+      color: #1a56a0;
+      margin: 10px 0;
+      font-family: 'Georgia', serif;
+      border-bottom: 2px solid #333;
+      padding: 0 30px 4px 30px;
+      display: inline-block;
+      min-width: 280px;
+    }
+
+    .cert-desc-text {
+      font-size: 14px;
+      color: #333;
+      max-width: 760px;
+      line-height: 1.6;
+      margin-top: 6px;
+    }
+
+    .cert-footer-row {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      margin-top: auto;
+      padding: 0 20px 10px 20px;
+    }
+
+    .cert-sign-col {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 180px;
+    }
+
+    .cert-sign-line {
+      width: 100%;
+      border-top: 1.5px solid #444;
+      margin-bottom: 6px;
+    }
+
+    .cert-seal {
+      width: 90px;
+      height: 90px;
+      border-radius: 50%;
+      border: 3px dashed #d4af37;
+      background: radial-gradient(circle, #fffdf5 40%, #fef3c7 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 10px rgba(212, 175, 55, 0.3);
+    }
   </style>
 </head>
 <body>
@@ -1273,6 +1658,7 @@
       <button class="sidebar-link" data-action="home">🏠 Home</button>
       <button class="sidebar-link" data-action="class">🏫 Select Class</button>
       <button class="sidebar-link" data-action="leaderboard">🏆 Leaderboard</button>
+      <button class="sidebar-link" data-action="certificates">🎖️ Achievement Certificates</button>
       <button class="sidebar-link" data-action="notes">📝 Study Notes</button>
       <button class="sidebar-link" data-action="books">📚 Textbooks & Guides</button>
       <button class="sidebar-link" data-action="videos">🎥 Video Lessons</button>
@@ -1327,6 +1713,21 @@
         <div id="notifModalAction" style="margin-top: 16px; display: none;">
           <a id="notifActionBtn" href="#" target="_blank" class="btn btn-primary" style="text-decoration: none; display: block; text-align: center;">Open Link 🔗</a>
         </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Milestone Achievement Pop-up Modal -->
+  <div class="cert-popup-overlay" id="certPopupOverlay" style="display: none;">
+    <div class="cert-popup-card">
+      <div style="font-size: 54px; margin-bottom: 8px;">🎉</div>
+      <h2 style="color: var(--primary); font-size: 22px; margin-bottom: 6px;" id="certPopupTitle">Milestone Unlocked!</h2>
+      <p id="certPopupMessage" style="font-size: 14px; color: var(--text-muted); line-height: 1.5; margin-bottom: 20px;">
+        Congratulations! You have reached 100 coins and earned your Achievement Certificate!
+      </p>
+      <div style="display: flex; flex-direction: column; gap: 10px;">
+        <button class="btn btn-primary" id="btnPopupDownloadCert">Download Certificate as PDF 📥</button>
+        <button class="btn btn-outline" onclick="closeCertPopup()">Later</button>
       </div>
     </div>
   </div>
@@ -1535,6 +1936,117 @@
       </div>
       <div id="videosContainer">Loading video lessons...</div>
     </div>
+    
+    <!-- SCREEN: CERTIFICATES -->
+    <div class="screen" id="screen-certificates">
+      <button class="back-btn" data-back="home">← Back</button>
+      <div class="section-title">🎖️ Achievement Certificates</div>
+      <div class="section-sub">Earn points from quizzes to unlock official KV Kutra PDF certificates</div>
+
+      <!-- Student Name Settings Card -->
+      <div class="card" style="margin-bottom: 16px;">
+        <label style="font-size: 13px; font-weight: 700; color: var(--primary); display: block; margin-bottom: 6px;">
+          Student Name on Certificate:
+        </label>
+        <div style="display: flex; gap: 8px;">
+          <input type="text" id="certStudentNameInput" placeholder="Enter full name (e.g. Likhil Pradhan)" style="flex: 1; padding: 10px; border: 2px solid var(--border); border-radius: 10px; font-family: inherit; font-size: 14px; background: var(--card); color: var(--text);" />
+          <button class="btn btn-primary" onclick="saveCertificateName()" style="width: auto; padding: 10px 16px; font-size: 13px;">Save</button>
+        </div>
+        <p style="font-size: 11px; color: var(--text-muted); margin-top: 6px;">Your current balance: <strong id="certCurrentCoinsText" style="color: var(--accent);">0</strong> Coins</p>
+      </div>
+
+      <!-- Milestone Certificates List -->
+      <div class="cert-grid">
+        <!-- 100 Points Milestone -->
+        <div class="cert-tier-card" id="cardTier100">
+          <div class="cert-tier-header">
+            <h4 style="margin: 0; font-size: 16px;">🥉 Bronze Scholar</h4>
+            <span class="cert-tier-badge tier-bronze">100 Coins Goal</span>
+          </div>
+          <p style="font-size: 13px; color: var(--text-muted); margin: 0;">Awarded for achieving 100 Points/Coins in KV Kutra quizzes.</p>
+          <div id="statusTier100" style="font-size: 12px; font-weight: 700; color: var(--text-muted);">🔒 Locked (Progress: 0/100)</div>
+          <button class="btn btn-primary" id="btnDownload100" onclick="downloadCertificate(100)" disabled style="margin-top: 6px; padding: 10px; opacity: 0.5;">
+            Download Certificate PDF 📥
+          </button>
+        </div>
+
+        <!-- 500 Points Milestone -->
+        <div class="cert-tier-card" id="cardTier500">
+          <div class="cert-tier-header">
+            <h4 style="margin: 0; font-size: 16px;">🥈 Silver Master</h4>
+            <span class="cert-tier-badge tier-silver">500 Coins Goal</span>
+          </div>
+          <p style="font-size: 13px; color: var(--text-muted); margin: 0;">Awarded for achieving 500 Points/Coins in KV Kutra quizzes.</p>
+          <div id="statusTier500" style="font-size: 12px; font-weight: 700; color: var(--text-muted);">🔒 Locked (Progress: 0/500)</div>
+          <button class="btn btn-primary" id="btnDownload500" onclick="downloadCertificate(500)" disabled style="margin-top: 6px; padding: 10px; opacity: 0.5;">
+            Download Certificate PDF 📥
+          </button>
+        </div>
+
+        <!-- 1000 Points Milestone -->
+        <div class="cert-tier-card" id="cardTier1000">
+          <div class="cert-tier-header">
+            <h4 style="margin: 0; font-size: 16px;">🥇 Gold Champion</h4>
+            <span class="cert-tier-badge tier-gold">1000 Coins Goal</span>
+          </div>
+          <p style="font-size: 13px; color: var(--text-muted); margin: 0;">The highest academic honour for earning 1000 Points/Coins.</p>
+          <div id="statusTier1000" style="font-size: 12px; font-weight: 700; color: var(--text-muted);">🔒 Locked (Progress: 0/1000)</div>
+          <button class="btn btn-primary" id="btnDownload1000" onclick="downloadCertificate(1000)" disabled style="margin-top: 6px; padding: 10px; opacity: 0.5;">
+            Download Certificate PDF 📥
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- HIDDEN HIGH-RES A4 CERTIFICATE TEMPLATE FOR PDF EXPORT -->
+    <div id="certificatePrintWrapper">
+      <div class="cert-frame">
+        <div class="cert-inner-frame">
+          <div class="cert-corner top-left"></div>
+          <div class="cert-corner top-right"></div>
+          <div class="cert-corner bottom-left"></div>
+          <div class="cert-corner bottom-right"></div>
+
+          <div class="cert-logo">
+            <img src="https://i.ibb.co/c4X3mz2/1787145169366.webp" alt="KV Logo" crossorigin="anonymous">
+          </div>
+
+          <div class="cert-school-title">KENDRIYA VIDYALAYA KUTRA</div>
+          <div class="cert-school-sub">SUNDARGARH, ODISHA • ACADEMIC EXCELLENCE RECOGNITION</div>
+
+          <div class="cert-title-banner" id="certTierBannerText">CERTIFICATE OF ACHIEVEMENT</div>
+
+          <div class="cert-presentation-text">This is proudly presented to</div>
+
+          <div class="cert-student-name" id="certPrintStudentName">STUDENT NAME</div>
+
+          <div class="cert-desc-text" id="certPrintDesc">
+            For outstanding academic dedication, critical thinking, and extraordinary mastery by accumulating
+            <strong id="certPrintMilestonePoints">100</strong> Points / Coins in the official Kendriya Vidyalaya Kutra Academic Quiz.
+          </div>
+
+          <div class="cert-footer-row">
+            <div class="cert-sign-col">
+              <div class="cert-sign-line"></div>
+              <div style="font-size: 13px; font-weight: 700; color: #1a56a0;">Date Issued</div>
+              <div id="certPrintDate" style="font-size: 12px; color: #666;">September 15, 2026</div>
+            </div>
+
+            <div class="cert-seal">
+              <div style="font-size: 20px;">🎖️</div>
+              <div style="font-size: 9px; font-weight: 800; color: #b45309; text-transform: uppercase;">KV KUTRA</div>
+              <div style="font-size: 8px; color: #888;">SEAL</div>
+            </div>
+
+            <div class="cert-sign-col">
+              <div class="cert-sign-line"></div>
+              <div style="font-size: 13px; font-weight: 700; color: #1a56a0;">Principal</div>
+              <div style="font-size: 12px; color: #666;">Kendriya Vidyalaya Kutra</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
       
     <!-- SCREEN 7: Leaderboard -->
     <div class="screen" id="screen-leaderboard">
@@ -1564,6 +2076,25 @@
         <div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden;">
           <iframe id="videoPlayerFrame" src="" style="position: absolute; top:0; left: 0; width: 100%; height: 100%; border:0;" allowfullscreen allow="autoplay; encrypted-media"></iframe>
         </div>
+      </div>
+    </div>
+
+    <!-- FULLSCREEN HTML NOTE READER MODAL -->
+    <div class="note-modal-overlay" id="noteReaderModalOverlay" style="display: none;">
+      <div class="note-modal-container">
+        <div class="note-modal-header">
+          <div>
+            <h3 id="noteReaderTitle" style="font-size: 17px; color: var(--primary); margin: 0;">Study Note</h3>
+            <span id="noteReaderSub" style="font-size: 12px; color: var(--text-muted);">Kendriya Vidyalaya Kutra</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <button type="button" class="btn btn-primary" id="noteReaderPrintBtn" onclick="printOrSaveNote()" style="padding: 6px 14px; font-size: 13px; width: auto; display: inline-flex; align-items: center; gap: 6px;">
+              <span>Save as PDF 📥</span>
+            </button>
+            <button type="button" class="btn-close-note" id="noteReaderCloseBtn" onclick="closeNoteReaderModal()" aria-label="Close Note">&times;</button>
+          </div>
+        </div>
+        <div class="note-modal-body" id="noteReaderContentArea"></div>
       </div>
     </div>
   </main>
@@ -1848,6 +2379,8 @@
       // If this correct answer unlocks a new coin (every 5th correct answer)
       if (newCoins > prevCoins) {
         showCoinCelebration(newCoins);
+        // Check for 100, 500, or 1000 points milestone pop-up
+        checkMilestonePopups(newCoins);
       }
     }
 
@@ -1861,6 +2394,147 @@
           badge.style.background = 'rgba(255, 255, 255, 0.2)';
         }, 500);
       }
+    }
+    
+    // ===================== CERTIFICATE SYSTEM =====================
+    const CERT_MILESTONES = [
+      { points: 100, title: "Bronze Scholar Certificate", banner: "CERTIFICATE OF MERIT (BRONZE)" },
+      { points: 500, title: "Silver Master Certificate", banner: "CERTIFICATE OF EXCELLENCE (SILVER)" },
+      { points: 1000, title: "Gold Champion Certificate", banner: "PRESIDENTIAL GOLD CERTIFICATE" }
+    ];
+
+    let currentPopupMilestone = 100;
+
+    function getStudentSavedName() {
+      return localStorage.getItem('kvStudentName') || 'Scholar Student';
+    }
+
+    function saveCertificateName() {
+      const input = document.getElementById('certStudentNameInput');
+      if (input && input.value.trim()) {
+        localStorage.setItem('kvStudentName', input.value.trim());
+        alert("Student name saved successfully!");
+        renderCertificatesScreen();
+      } else {
+        alert("Please enter a valid student name.");
+      }
+    }
+
+    function checkMilestonePopups(coins) {
+      const shownMilestones = JSON.parse(localStorage.getItem('kvShownMilestones') || '[]');
+
+      for (let m of CERT_MILESTONES) {
+        if (coins >= m.points && !shownMilestones.includes(m.points)) {
+          // Trigger pop-up
+          shownMilestones.push(m.points);
+          localStorage.setItem('kvShownMilestones', JSON.stringify(shownMilestones));
+          triggerMilestonePopup(m.points);
+          break;
+        }
+      }
+    }
+
+    function triggerMilestonePopup(points) {
+      currentPopupMilestone = points;
+      const overlay = document.getElementById('certPopupOverlay');
+      const title = document.getElementById('certPopupTitle');
+      const msg = document.getElementById('certPopupMessage');
+      const btn = document.getElementById('btnPopupDownloadCert');
+
+      const item = CERT_MILESTONES.find(m => m.points === points) || CERT_MILESTONES[0];
+
+      title.textContent = `🎉 ${points} Coins Achieved!`;
+      msg.textContent = `Magnificent job! You have reached ${points} coins and officially unlocked the prestigious "${item.title}".`;
+      btn.onclick = () => {
+        closeCertPopup();
+        downloadCertificate(points);
+      };
+
+      overlay.style.display = 'flex';
+    }
+
+    function closeCertPopup() {
+      document.getElementById('certPopupOverlay').style.display = 'none';
+    }
+
+    function renderCertificatesScreen() {
+      const { coins } = getPointsData();
+      const studentName = getStudentSavedName();
+
+      const nameInput = document.getElementById('certStudentNameInput');
+      if (nameInput) nameInput.value = studentName;
+
+      const coinsText = document.getElementById('certCurrentCoinsText');
+      if (coinsText) coinsText.textContent = coins;
+
+      CERT_MILESTONES.forEach(m => {
+        const card = document.getElementById(`cardTier${m.points}`);
+        const status = document.getElementById(`statusTier${m.points}`);
+        const btn = document.getElementById(`btnDownload${m.points}`);
+
+        if (coins >= m.points) {
+          card.classList.add('unlocked');
+          status.style.color = '#10b981';
+          status.innerHTML = `✅ Unlocked! (${coins}/${m.points} Coins)`;
+          btn.disabled = false;
+          btn.style.opacity = '1';
+        } else {
+          card.classList.remove('unlocked');
+          status.style.color = 'var(--text-muted)';
+          status.innerHTML = `🔒 Locked (Progress: ${coins}/${m.points} Coins)`;
+          btn.disabled = true;
+          btn.style.opacity = '0.5';
+        }
+      });
+    }
+
+    function downloadCertificate(milestonePoints) {
+      let studentName = getStudentSavedName();
+      if (!studentName || studentName === 'Scholar Student') {
+        const promptName = prompt("Please enter the student's name for the certificate:", "Likhil Pradhan");
+        if (promptName && promptName.trim()) {
+          studentName = promptName.trim();
+          localStorage.setItem('kvStudentName', studentName);
+        }
+      }
+
+      const item = CERT_MILESTONES.find(m => m.points === milestonePoints) || CERT_MILESTONES[0];
+
+      // Populate template
+      document.getElementById('certPrintStudentName').textContent = studentName.toUpperCase();
+      document.getElementById('certPrintMilestonePoints').textContent = milestonePoints;
+      document.getElementById('certTierBannerText').textContent = item.banner;
+      document.getElementById('certPrintDate').textContent = new Date().toLocaleDateString('en-IN', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric'
+      });
+
+      const element = document.getElementById('certificatePrintWrapper');
+      element.style.position = 'static';
+      element.style.left = '0';
+      element.style.top = '0';
+
+      const opt = {
+        margin: 0,
+        filename: `KV_Kutra_Certificate_${milestonePoints}_Points_${studentName.replace(/\s+/g, '_')}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
+      };
+
+      // Generate and trigger download
+      html2pdf().set(opt).from(element).save().then(() => {
+        element.style.position = 'absolute';
+        element.style.left = '-9999px';
+        element.style.top = '-9999px';
+      }).catch(err => {
+        console.error("Certificate generation error:", err);
+        element.style.position = 'absolute';
+        element.style.left = '-9999px';
+        element.style.top = '-9999px';
+        alert("Certificate downloaded!");
+      });
     }
     
     // ===================== STATE =====================
@@ -2552,6 +3226,9 @@
           } else if (action === 'leaderboard') {
             showScreen('leaderboard');
             fetchLeaderboard();
+            } else if (action === 'certificates') {
+            showScreen('certificates');
+            renderCertificatesScreen();
           } else if (action === 'notes') {
             showScreen('notes');
             populateUserResourceFilter('notesClassFilter');
@@ -2691,8 +3368,11 @@
       const allRes = window.userResources || {};
       const keys = Object.keys(allRes).reverse();
 
-      const items = keys.map(k => allRes[k]).filter(item => {
-        const matchType = item.type === type;
+      // Include both standard notes and HTML notes under 'note'
+      const items = keys.map(k => ({ resKey: k, ...allRes[k] })).filter(item => {
+        const matchType = (type === 'note')
+          ? (item.type === 'note' || item.type === 'html_note' || !!item.htmlContent)
+          : (item.type === type);
         const matchClass = filterVal === 'all' || String(item.class) === String(filterVal);
         return matchType && matchClass;
       });
@@ -2733,6 +3413,18 @@
             ${item.desc ? `<p style="font-size: 13px; color: var(--text-muted);">${escapeHtml(item.desc)}</p>` : ''}
             <button class="btn btn-primary" onclick="openVideoPlayer('${videoId || ''}', '${item.url}')" style="margin-top: 6px; padding: 10px;">
               Watch Video Lesson 🎥
+            </button>
+          `;
+        } else if (item.type === 'html_note' || item.htmlContent) {
+          card.innerHTML = `
+            <div style="display: flex; gap: 6px; align-items: center;">
+              <span class="resource-badge">Class ${item.class}</span>
+              <span class="resource-badge" style="background: var(--accent-light); color: var(--accent);">${subName}</span>
+              <span class="resource-badge" style="background: #fef3c7; color: #b45309;">Interactive Note 📝</span>
+            </div>
+            <h3 style="font-size: 16px; margin: 4px 0;">${escapeHtml(item.title)}</h3>
+            <button class="btn btn-primary" onclick="openHtmlNoteReader('${item.resKey}')" style="margin-top: 6px; padding: 10px;">
+              Read Full Note (Formulas & Diagrams) 📖
             </button>
           `;
         } else {
@@ -2777,6 +3469,123 @@
         }
       });
     }
+
+    // ================= HTML NOTE VIEWER =================
+    function openHtmlNoteReader(keyOrEncoded) {
+      try {
+        let item = null;
+        if (window.userResources && window.userResources[keyOrEncoded]) {
+          item = window.userResources[keyOrEncoded];
+        } else if (typeof keyOrEncoded === 'string' && keyOrEncoded.startsWith('%7B')) {
+          item = JSON.parse(decodeURIComponent(keyOrEncoded));
+        }
+
+        if (!item) return;
+
+        const modal = document.getElementById('noteReaderModalOverlay');
+        const title = document.getElementById('noteReaderTitle');
+        const sub = document.getElementById('noteReaderSub');
+        const body = document.getElementById('noteReaderContentArea');
+
+        const subjectObj = dynamicSubjects.find(s => s.id === item.subject);
+        const subName = subjectObj ? subjectObj.name : (item.subject || '').toUpperCase();
+
+        title.textContent = item.title;
+        sub.textContent = `Class ${item.class} • ${subName} • Kendriya Vidyalaya Kutra`;
+
+        // Render the exact HTML pasted by the Admin
+        body.innerHTML = item.htmlContent || "<p>No content in this note.</p>";
+        modal.style.display = 'flex';
+
+        // Typeset all math formulas (LaTeX, Trigonometry, Symbols) using MathJax
+        if (window.MathJax && window.MathJax.typesetPromise) {
+          window.MathJax.typesetPromise([body]);
+        }
+      } catch (err) {
+        console.error("Error displaying HTML note:", err);
+      }
+    }
+
+    function closeNoteReaderModal() {
+      const modal = document.getElementById('noteReaderModalOverlay');
+      if (modal) {
+        modal.style.display = 'none';
+      }
+    }
+
+    // One-Click PDF Download + Desktop Print Fallback
+    function printOrSaveNote() {
+      const content = document.getElementById('noteReaderContentArea');
+      const titleElem = document.getElementById('noteReaderTitle');
+      const noteTitle = (titleElem ? titleElem.textContent : 'Study_Note').trim();
+      const cleanFileName = noteTitle.replace(/[^a-zA-Z0-9_\-]/g, '_') + '_KV_Kutra.pdf';
+
+      const btn = document.getElementById('noteReaderPrintBtn');
+      const originalBtnHtml = btn ? btn.innerHTML : '';
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = 'Generating PDF... ⏳';
+      }
+
+      // Use html2pdf for direct mobile PDF download
+      if (window.html2pdf) {
+        const opt = {
+          margin: [10, 10, 10, 10],
+          filename: cleanFileName,
+          image: { type: 'jpeg', quality: 0.98 },
+          html2canvas: { scale: 2, useCORS: true, logging: false },
+          jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        };
+
+        html2pdf().set(opt).from(content).save().then(() => {
+          if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = originalBtnHtml;
+          }
+        }).catch(err => {
+          console.warn("html2pdf failed, falling back to window.print():", err);
+          if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = originalBtnHtml;
+          }
+          window.print();
+        });
+      } else {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = originalBtnHtml;
+        }
+        window.print();
+      }
+    }
+
+    // Touch & Click Event Listeners for Reliable Mobile Closing
+    document.addEventListener('DOMContentLoaded', () => {
+      const closeBtn = document.getElementById('noteReaderCloseBtn');
+      const modal = document.getElementById('noteReaderModalOverlay');
+
+      if (closeBtn) {
+        closeBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          closeNoteReaderModal();
+        });
+      }
+
+      if (modal) {
+        modal.addEventListener('click', (e) => {
+          if (e.target === modal) {
+            closeNoteReaderModal();
+          }
+        });
+      }
+
+      // Close on Escape key
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          closeNoteReaderModal();
+        }
+      });
+    });
 
     // Start App
     setupSidebar();
